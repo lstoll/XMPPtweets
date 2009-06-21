@@ -24,7 +24,7 @@ import base64
 import calendar
 import os
 import rfc822
-import simplejson
+from django.utils import simplejson
 import sys
 import tempfile
 import textwrap
@@ -1294,7 +1294,7 @@ class Api(object):
       input_encoding: The encoding used to encode input strings. [optional]
       request_header: A dictionary of additional HTTP request headers. [optional]
     '''
-    self._cache = _FileCache()
+    self._cache = None
     self._urllib = urllib2
     self._cache_timeout = Api.DEFAULT_CACHE_TIMEOUT
     self._InitializeRequestHeaders(request_headers)
