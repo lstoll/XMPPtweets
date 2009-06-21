@@ -6,6 +6,9 @@ from django.conf.urls.defaults import *
 
 urlpatterns = patterns('',
     (r'^$', 'app.views.index'),
+    (r'^xmpp_endpoint$', 'app.views_bot.index'),
+    (r'^poller$', 'app.views_bot.poller'),
+    
     # (r'^admin/$', 'app.views_admin.index'),
     # (r'^admin/create_carrier/$', 'app.views_admin.create_carrier'),
     # (r'^admin/update_carrier/(.*)/$', 'app.views_admin.update_carrier'),

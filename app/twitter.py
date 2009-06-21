@@ -66,6 +66,7 @@ class Status(object):
     status.source
     status.id
     status.text
+    status.location
     status.relative_created_at # read only
     status.user
   '''
@@ -74,6 +75,7 @@ class Status(object):
                favorited=None,
                id=None,
                text=None,
+               location=None,
                user=None,
                in_reply_to_screen_name=None,
                in_reply_to_user_id=None,
@@ -93,6 +95,7 @@ class Status(object):
       favorited: Whether this is a favorite of the authenticated user
       id: The unique id of this status message
       text: The text of this status message
+      location: the geolocation string associated with this message
       relative_created_at:
         A human readable string representing the posting time
       user:
@@ -105,6 +108,7 @@ class Status(object):
     self.favorited = favorited
     self.id = id
     self.text = text
+    self.location = location
     self.user = user
     self.now = now
     self.in_reply_to_screen_name = in_reply_to_screen_name
@@ -246,6 +250,25 @@ class Status(object):
   text = property(GetText, SetText,
                   doc='The text of this status message')
 
+  def GetLocation(self):
+    '''Get the geolocation associated with this status message
+
+    Returns:
+      The geolocation string of this status message.
+    '''
+    return self._location
+
+  def SetLocation(self, location):
+    '''Set the geolocation associated with this status message
+
+    Args:
+      location: The geolocation string of this status message
+    '''
+    self._location = location
+
+  location = property(GetLocation, SetLocation,
+                      doc='The geolocation string of this status message')
+
   def GetRelativeCreatedAt(self):
     '''Get a human redable string representing the posting time
 
@@ -334,6 +357,7 @@ class Status(object):
              self.created_at == other.created_at and \
              self.id == other.id and \
              self.text == other.text and \
+             self.location == other.location and \
              self.user == other.user and \
              self.in_reply_to_screen_name == other.in_reply_to_screen_name and \
              self.in_reply_to_user_id == other.in_reply_to_user_id and \
@@ -379,6 +403,8 @@ class Status(object):
       data['id'] = self.id
     if self.text:
       data['text'] = self.text
+    if self.location:
+      data['location'] = self.location	
     if self.user:
       data['user'] = self.user.AsDict()
     if self.in_reply_to_screen_name:
@@ -412,6 +438,7 @@ class Status(object):
                   favorited=data.get('favorited', None),
                   id=data.get('id', None),
                   text=data.get('text', None),
+                  location=data.get('location', None),
                   in_reply_to_screen_name=data.get('in_reply_to_screen_name', None),
                   in_reply_to_user_id=data.get('in_reply_to_user_id', None),
                   in_reply_to_status_id=data.get('in_reply_to_status_id', None),
@@ -1323,10 +1350,93 @@ class Api(object):
     self._CheckForTwitterError(data)
     return [Status.NewFromJsonDict(x) for x in data]
 
+  def FilterPublicTimeline(self, term, since_id=None):
+		''' Filter the public twitter timeline by a given search term on
+			the local machine.
+		Args:
+			term:
+			 term to search by.
+			since_id:
+			 Returns only public statuses with an ID greater than (that is,
+		       more recent than) the specified ID. [Optional]
+	
+		Returns:
+			A sequence of twitter.Status instances, one for each message 
+			containing the term
+		'''
+		statuses = self.GetPublicTimeline(since_id)
+		results = []
+
+		for s in statuses:
+			if s.text.lower().find(term.lower()) != -1:
+				results.append(s)
+		return results
+
+  def GetSearch(self, term, geocode=None, since_id=None, 
+		  per_page=15, page=1, lang="en", show_user="true", query_users=False):
+    ''' Return twitter search results for a given term.
+
+    Args:
+      term:
+       term to search by.
+      since_id:
+       Returns only public statuses with an ID greater than (that is,
+         more recent than) the specified ID. [Optional]
+      geocode:
+	   geolocation information in the form (latitude, longitude, radius) [Optional]
+      per_page:
+       number of results to return [Optional] default=15
+      page:
+       which page of search results to return
+      lang:
+       language for results [Optional] default english
+      show_user:
+       prefixes screen name in status
+      query_users:
+       If sets to False, then all users only have screen_name and
+       profile_image_url available. If sets to True, all information of users
+       are available, but it uses lots of request quota, one per status.
+    Returns:
+      A sequence of twitter.Status instances, one for each 
+      message containing the term
+    '''
+    # Build request parameters
+    parameters = {}
+    if since_id:
+      parameters['since_id'] = since_id
+    if not term:
+      return []
+    parameters['q'] = urllib.quote_plus(term)
+    parameters['show_user'] = show_user
+    parameters['lang'] = lang
+    parameters['rpp'] = per_page
+    parameters['page'] = page
+    if geocode is not None:
+      parameters['geocode'] = ','.join(map(str, geocode))
+
+    # Make and send requests
+    url = 'http://search.twitter.com/search.json'
+    json = self._FetchUrl(url,  parameters=parameters)
+    data = simplejson.loads(json)
+    self._CheckForTwitterError(data)
+
+    results = []
+    for x in data['results']:
+      temp = Status.NewFromJsonDict(x)
+      if query_users:
+        # Build user object with new request
+        temp.user = self.GetUser(urllib.quote(x['from_user']))
+      else:
+        temp.user = User(screen_name=x['from_user'], profile_image_url=x['profile_image_url'])
+      results.append(temp)
+
+    # Return built list of statuses
+    return results # [Status.NewFromJsonDict(x) for x in data['results']]
+
   def GetFriendsTimeline(self,
                          user=None,
                          count=None,
-                         since=None, 
+                         since=None,
                          since_id=None):
     '''Fetch the sequence of twitter.Status messages for a user's friends
 

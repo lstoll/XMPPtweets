@@ -1,0 +1,4 @@
+cron:
+- description: twitter poller
+  url: /poller
+  schedule: every 5 minutes
