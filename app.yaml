@@ -1,0 +1,23 @@
+application: xmpptweets
+version: 1
+runtime: python
+api_version: 1
+
+handlers:
+- url: /static
+  static_dir: static
+
+- url: /favicon.ico
+  static_files: static/images/favicon.ico
+  upload: static/images/favicon.ico
+
+- url: /robots.txt
+  static_files: static/robots.txt
+  upload: static/robots.txt
+
+- url: /admin/.*
+  login: admin
+  script: common/appenginepatch/main.py
+
+- url: /.*
+  script: common/appenginepatch/main.py
