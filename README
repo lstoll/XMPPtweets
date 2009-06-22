@@ -1,0 +1,3 @@
+A bot which used IMIfied and app engine to bridge twitter and instant messaging.
+
+You will need to setup a bot, and set the details in src/app/config.yaml

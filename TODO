@@ -1,0 +1,7 @@
+- Move bot functionality into a class
+- Keep track of both requests and RPCs
+- Catch Download Error 5's, and re-do request if they occur.
+
+MAYBE:
+- convert all url calls in the twitter gem to use rpc and callbacks (passed in
+    as a param) which then process the data and send.
