@@ -365,9 +365,8 @@ def search(user, term):
     
   wait_on_rpc_response(user, rpcs)
     
-
-
-
-
 def get_api(user):
-  return twitter.Api(username=user.twitter_username, password=user.twitter_password)
+    # @type api Api
+    api = twitter.Api(username=user.twitter_username, password=user.twitter_password)
+    api.SetXTwitterHeaders("xmpptweets", 'http://xmpptweets.appspot.com/static/twitter-client.xml', '0.1')
+    return api

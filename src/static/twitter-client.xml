@@ -1,0 +1,16 @@
+<client>
+    <name>xmpptweets</name>
+    <version>0.1</version>
+    <author>
+        <name>Lincoln Stoll</name>
+        <email>lstoll@lstoll.net</email>
+        <twitter>lstoll</twitter>
+    </author>
+    <url>http://twitter.isite.net.au</url>
+    <twitter>xmpptweets</twitter>
+    <description><![CDATA[
+		xmpptweets bridges instant messaging with twitter<br/>
+		<a href="http://xmpptweets.appspot.com">Homepage</a>
+	]]>
+    </description>
+</client>
