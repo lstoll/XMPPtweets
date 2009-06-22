@@ -1,4 +1,4 @@
 .DS_Store
-php
+nbproject/private
 *.pyc
-app/config.yaml
+src/app/config.yaml
